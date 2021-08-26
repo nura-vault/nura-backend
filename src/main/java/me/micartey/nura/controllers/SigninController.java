@@ -2,6 +2,7 @@ package me.micartey.nura.controllers;
 
 import lombok.AllArgsConstructor;
 import lombok.val;
+import me.micartey.nura.authentication.MailVerifier;
 import me.micartey.nura.authentication.TokenController;
 import me.micartey.nura.bodies.SigninBody;
 import me.micartey.nura.repositories.UserRepository;
@@ -19,12 +20,17 @@ import org.springframework.web.bind.annotation.*;
 public class SigninController {
 
     private final TokenController tokenController;
+    private final MailVerifier    mailVerifier;
 
     private final UserRepository userRepository;
 
     @CrossOrigin
     @PostMapping
-    public ResponseEntity<Response> onSignin(@RequestBody SigninBody body, @Value("${nura.signin.mismatch}") String mismatch) {
+    public ResponseEntity<Response> onSignin(@RequestBody SigninBody body, @Value("${nura.signin.mismatch}") String mismatch, @Value("${nura.invalidMail}") String invalidMail) {
+        
+        if (!mailVerifier.isValidMail(body.getMail()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidMail));
+
         val match = userRepository.findByMailAndPassword(body.getMail(), body.getPassword());
 
         if (!match.isPresent())

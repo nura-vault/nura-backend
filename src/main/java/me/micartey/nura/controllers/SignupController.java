@@ -2,6 +2,7 @@ package me.micartey.nura.controllers;
 
 import lombok.AllArgsConstructor;
 import lombok.val;
+import me.micartey.nura.authentication.MailVerifier;
 import me.micartey.nura.authentication.TokenController;
 import me.micartey.nura.bodies.SignupBody;
 import me.micartey.nura.entities.UserEntity;
@@ -20,12 +21,16 @@ import org.springframework.web.bind.annotation.*;
 public class SignupController {
 
     private final TokenController tokenController;
+    private final MailVerifier    mailVerifier;
 
     private final UserRepository userRepository;
 
     @CrossOrigin
     @PostMapping
-    public ResponseEntity<Response> onSignup(@RequestBody SignupBody body, @Value("${nura.signup.alreadyInUse}") String alreadyInUse) {
+    public ResponseEntity<Response> onSignup(@RequestBody SignupBody body, @Value("${nura.signup.alreadyInUse}") String alreadyInUse, @Value("${nura.invalidMail}") String invalidMail) {
+
+        if (!mailVerifier.isValidMail(body.getMail()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidMail));
 
         if (userRepository.existsByMail(body.getMail()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(alreadyInUse));
