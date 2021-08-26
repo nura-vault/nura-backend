@@ -3,14 +3,16 @@ package me.micartey.nura.controllers;
 import lombok.AllArgsConstructor;
 import lombok.val;
 import me.micartey.nura.authentication.TokenController;
+import me.micartey.nura.bodies.SignupBody;
 import me.micartey.nura.entities.UserEntity;
 import me.micartey.nura.repositories.UserRepository;
+import me.micartey.nura.responses.ErrorResponse;
+import me.micartey.nura.responses.Response;
+import me.micartey.nura.responses.SigninResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -23,32 +25,21 @@ public class SignupController {
 
     @CrossOrigin
     @PostMapping
-    public ResponseEntity<String> onSignup(@RequestBody Map<String, String> body, @Value("${nura.signup.alreayInUse}") String alreadyInUse) {
-        val exists = userRepository.existsByMail(
-                body.get("mail")
+    public ResponseEntity<Response> onSignup(@RequestBody SignupBody body, @Value("${nura.signup.alreadyInUse}") String alreadyInUse) {
+
+        if (userRepository.existsByMail(body.getMail()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(alreadyInUse));
+
+        val entity = new UserEntity(
+                body.getUsername(),
+                body.getMail(),
+                body.getPassword()
         );
 
-        if (exists) {
-            return new ResponseEntity<>(
-                    alreadyInUse,
-                    HttpStatus.UNAUTHORIZED
-            );
-        }
+        userRepository.save(entity);
 
-        val userEntity = new UserEntity(
-                body.get("username"),
-                body.get("mail"),
-                body.get("password")
-        );
-
-        userRepository.save(userEntity);
-
-        return new ResponseEntity<>(
-                String.valueOf(tokenController.generateToken(
-                        body.get("mail")
-                )),
-                HttpStatus.ACCEPTED
-        );
+        val token = this.tokenController.generateToken(entity.getMail());
+        return ResponseEntity.accepted().body(new SigninResponse(entity.getUsername(), token));
     }
 
 }

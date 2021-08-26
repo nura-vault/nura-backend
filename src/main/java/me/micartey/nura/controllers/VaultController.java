@@ -2,18 +2,20 @@ package me.micartey.nura.controllers;
 
 import lombok.AllArgsConstructor;
 import lombok.val;
-import lombok.var;
 import me.micartey.nura.authentication.TokenController;
+import me.micartey.nura.bodies.AuthBody;
+import me.micartey.nura.bodies.VaultBody;
 import me.micartey.nura.entities.VaultEntity;
 import me.micartey.nura.repositories.VaultRepository;
+import me.micartey.nura.responses.ErrorResponse;
+import me.micartey.nura.responses.Response;
+import me.micartey.nura.responses.VaultResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.AbstractMap;
-import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -26,59 +28,37 @@ public class VaultController {
 
     @CrossOrigin
     @GetMapping
-    public ResponseEntity<String> getVault(@RequestBody Map<String, String> body, @Value("${nura.vault.invalidToken}") String invalidToken) {
-        if (!this.isAuthenticated(body)) {
-            return new ResponseEntity<>(
-                    invalidToken,
-                    HttpStatus.UNAUTHORIZED
-            );
-        }
+    public ResponseEntity<Response> getVault(@RequestBody AuthBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        val entity = this.getVaultEntity(
-                body.get("mail")
-        );
+        if (!tokenController.validTokenMatch(body.getMail(), body.getToken()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
 
-        return new ResponseEntity<>(
-                entity.getPasswords().toString(),
-                HttpStatus.ACCEPTED
-        );
+        val entity = this.getVaultEntity(body.getMail());
+
+        return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
     }
 
     @CrossOrigin
     @PutMapping
-    public ResponseEntity<String> addPassword(@RequestBody Map<String, String> body, @Value("${nura.vault.invalidToken}") String invalidToken) {
-        if (!this.isAuthenticated(body)) {
-            return new ResponseEntity<>(
-                    invalidToken,
-                    HttpStatus.UNAUTHORIZED
-            );
-        }
+    public ResponseEntity<Response> addPassword(@RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        val entity = this.getVaultEntity(
-                body.get("mail")
-        );
+        if (!tokenController.validTokenMatch(body.getMail(), body.getToken()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
+
+        val entity = this.getVaultEntity(body.getMail());
 
         entity.getPasswords().add(new AbstractMap.SimpleEntry<>(
-                body.get("name"),
-                body.get("password")
+                body.getName(),
+                body.getPassword()
         ));
 
         vaultRepository.save(entity);
 
-        return this.getVault(body, invalidToken);
+        return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
     }
 
     private VaultEntity getVaultEntity(String mail) {
         val entity = vaultRepository.findByMail(mail);
         return entity == null ? new VaultEntity(mail) : entity;
-    }
-
-    private boolean isAuthenticated(Map<String, String> body) {
-        return tokenController.validTokenMatch(
-                body.get("mail"),
-                UUID.fromString(
-                        body.get("token")
-                )
-        );
     }
 }
