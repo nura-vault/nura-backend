@@ -1,5 +1,7 @@
 Dockerfile
 .git
 .mvn
+.idea
 .editorconfig
+target
 *.md
