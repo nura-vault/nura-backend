@@ -20,6 +20,7 @@ public class VaultEntity {
     private ArrayList<Map.Entry<String, String>> passwords;
 
     public VaultEntity(String mail) {
+        this.passwords = new ArrayList<>();
         this.mail = mail;
     }
 }
