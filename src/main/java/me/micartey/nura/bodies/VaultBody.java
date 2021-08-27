@@ -9,6 +9,6 @@ public class VaultBody {
     private final String mail;
     private final UUID   token;
 
-    private final String name;
+    private final String identifier;
     private final String password;
 }
