@@ -5,6 +5,7 @@ import lombok.val;
 import me.micartey.nura.authentication.TokenController;
 import me.micartey.nura.bodies.AuthBody;
 import me.micartey.nura.bodies.VaultBody;
+import me.micartey.nura.entities.PasswordEntity;
 import me.micartey.nura.entities.VaultEntity;
 import me.micartey.nura.repositories.VaultRepository;
 import me.micartey.nura.responses.ErrorResponse;
@@ -14,8 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.AbstractMap;
 
 @RestController
 @AllArgsConstructor
@@ -47,8 +46,8 @@ public class VaultController {
 
         val entity = this.getVaultEntity(body.getMail());
 
-        entity.getPasswords().add(new AbstractMap.SimpleEntry<>(
-                body.getName(),
+        entity.getPasswords().add(new PasswordEntity(
+                body.getIdentifier(),
                 body.getPassword()
         ));
 
