@@ -26,7 +26,7 @@ public class VaultController {
     private final VaultRepository vaultRepository;
 
     @CrossOrigin
-    @GetMapping
+    @PostMapping
     public ResponseEntity<Response> getVault(@RequestBody AuthBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
         if (!tokenController.validTokenMatch(body.getMail(), body.getToken()))
