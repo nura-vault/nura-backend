@@ -56,6 +56,25 @@ public class VaultController {
         return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
     }
 
+    @CrossOrigin
+    @DeleteMapping
+    public ResponseEntity<Response> deletePassword(@RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+
+        if (!tokenController.validTokenMatch(body.getMail(), body.getToken()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
+
+        val entity = this.getVaultEntity(body.getMail());
+
+        val passwordEntity = entity.getPasswords().stream().filter(var -> {
+            return var.getIdentifier().equals(body.getIdentifier()) && var.getPassword().equals(body.getPassword());
+        }).findFirst().orElse(null);
+
+        entity.getPasswords().remove(passwordEntity);
+        vaultRepository.save(entity);
+
+        return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
+    }
+
     private VaultEntity getVaultEntity(String mail) {
         val entity = vaultRepository.findByMail(mail);
         return entity == null ? new VaultEntity(mail) : entity;
