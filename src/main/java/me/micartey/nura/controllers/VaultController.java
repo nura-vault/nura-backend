@@ -58,7 +58,7 @@ public class VaultController {
 
     @CrossOrigin
     @DeleteMapping
-    public ResponseEntity<Response> deletePassword(@RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+    public ResponseEntity<Response> removePassword(@RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
         if (!tokenController.validTokenMatch(body.getMail(), body.getToken()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
