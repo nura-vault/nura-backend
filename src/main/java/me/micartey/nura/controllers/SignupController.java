@@ -26,7 +26,7 @@ public class SignupController {
     private final UserRepository userRepository;
 
     @CrossOrigin
-    @PostMapping
+    @PutMapping
     public ResponseEntity<Response> onSignup(@RequestBody SignupBody body, @Value("${nura.signup.alreadyInUse}") String alreadyInUse, @Value("${nura.invalidMail}") String invalidMail) {
 
         if (!mailVerifier.isValidMail(body.getMail()))
