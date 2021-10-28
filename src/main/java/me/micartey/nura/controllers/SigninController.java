@@ -24,8 +24,6 @@ public class SigninController {
 
     private final UserRepository userRepository;
 
-    //https://stackoverflow.com/questions/32271042/how-to-convert-requestheader-to-custom-object-in-spring
-
     @CrossOrigin
     @GetMapping
     public ResponseEntity<Response> onSignin(@RequestHeader("Authorization") AuthConverter.Auth auth, @Value("${nura.signin.mismatch}") String mismatch, @Value("${nura.invalidMail}") String invalidMail) {

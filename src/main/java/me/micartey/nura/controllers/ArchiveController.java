@@ -2,6 +2,7 @@ package me.micartey.nura.controllers;
 
 import lombok.AllArgsConstructor;
 import lombok.val;
+import me.micartey.nura.authentication.AuthConverter;
 import me.micartey.nura.authentication.TokenController;
 import me.micartey.nura.bodies.VaultBody;
 import me.micartey.nura.entities.ArchiveEntity;
@@ -29,30 +30,24 @@ public class ArchiveController {
 
     @CrossOrigin
     @GetMapping
-    public ResponseEntity<Response> getArchive(@RequestHeader("Authorization") String auth, @Value("${nura.vault.invalidToken}") String invalidToken) {
-        String decoded = new String(Base64.getDecoder().decode(auth));
-        String mail = decoded.split(":")[0];
-        UUID token = UUID.fromString(decoded.split(":")[1]);
+    public ResponseEntity<Response> getArchive(@RequestHeader("Authorization") AuthConverter.Auth auth, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        if (!tokenController.validTokenMatch(mail, token))
+        if (!tokenController.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
 
-        val entity = this.getArchiveEntity(mail);
+        val entity = this.getArchiveEntity(auth.getKey());
 
         return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
     }
 
     @CrossOrigin
     @PostMapping
-    public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") String auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
-        String decoded = new String(Base64.getDecoder().decode(auth));
-        String mail = decoded.split(":")[0];
-        UUID token = UUID.fromString(decoded.split(":")[1]);
+    public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        if (!tokenController.validTokenMatch(mail, token))
+        if (!tokenController.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
 
-        val entity = this.getArchiveEntity(mail);
+        val entity = this.getArchiveEntity(auth.getKey());
 
         entity.getPasswords().add(new PasswordEntity(
                 body.getIdentifier(),
@@ -68,15 +63,12 @@ public class ArchiveController {
 
     @CrossOrigin
     @DeleteMapping
-    public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") String auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
-        String decoded = new String(Base64.getDecoder().decode(auth));
-        String mail = decoded.split(":")[0];
-        UUID token = UUID.fromString(decoded.split(":")[1]);
-        
-        if (!tokenController.validTokenMatch(mail, token))
+    public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+
+        if (!tokenController.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
 
-        val entity = this.getArchiveEntity(mail);
+        val entity = this.getArchiveEntity(auth.getKey());
 
         val passwordEntity = entity.getPasswords().stream().filter(var -> {
             return var.getIdentifier().equals(body.getIdentifier()) && var.getPassword().equals(body.getPassword());

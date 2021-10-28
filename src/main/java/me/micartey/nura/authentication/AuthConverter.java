@@ -10,6 +10,8 @@ import java.util.Base64;
 @Component
 public class AuthConverter implements Converter<String, AuthConverter.Auth> {
 
+    //https://stackoverflow.com/questions/32271042/how-to-convert-requestheader-to-custom-object-in-spring
+
     @Override
     public Auth convert(String data) {
         String decoded = new String(Base64.getDecoder().decode(data));
