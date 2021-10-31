@@ -27,13 +27,31 @@ nura-backend is a RESTful API for managing [nura's](https://github.com/nura-vaul
 
 ## ☁ Magic
 
-The magic processes the Rest requests and returns data to the client. Here are the following endpoints with their required body parameters:
+All the endpoints use a `Authentication` header to authenticate each request and present user specific results. Depending on the request, the Authentication header varies:
+
+### Signin
+
+```js
+Authentication: <base64(username:password)>
+```
+
+After sucessfully signing in, the response will contain a token. This is later used to authenticate all other requests.
+
+### Vault / Archive
+
+```js
+Authentication: <base64(username:token)>
+```
+
+The REST endpoinst look as follows:
 
 <div align="center">
     <img
       src="https://i.imgur.com/HnbRWVu.png"
     />
 </div>
+
+**(outdated)**
 
 ## 🧱 Build it yourself
 
