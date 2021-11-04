@@ -18,6 +18,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <exec.mainClass>me.micartey.nura.Application</exec.mainClass>
     </properties>
 
     <build>

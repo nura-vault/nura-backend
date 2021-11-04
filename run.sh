@@ -1,0 +1,1 @@
+mvn clean compile exec:java -Dmaven.test.skip=true --quiet

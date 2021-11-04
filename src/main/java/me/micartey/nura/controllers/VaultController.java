@@ -1,5 +1,19 @@
 package me.micartey.nura.controllers;
 
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import lombok.AllArgsConstructor;
 import lombok.val;
 import me.micartey.nura.authentication.AuthConverter;
@@ -11,13 +25,6 @@ import me.micartey.nura.repositories.VaultRepository;
 import me.micartey.nura.responses.ErrorResponse;
 import me.micartey.nura.responses.Response;
 import me.micartey.nura.responses.VaultResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Base64;
-import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
