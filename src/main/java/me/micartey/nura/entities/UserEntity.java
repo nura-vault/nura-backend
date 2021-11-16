@@ -1,6 +1,8 @@
 package me.micartey.nura.entities;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,15 +10,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
         collection = "users"
 )
 @Data
+@RequiredArgsConstructor
 public class UserEntity {
 
     @Id
     private String id;
-    private String username, mail, password;
+    private final String username, mail, password;
 
-    public UserEntity(String username, String mail, String password) {
-        this.username = username;
-        this.mail = mail;
-        this.password = password;
-    }
 }

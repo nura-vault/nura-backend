@@ -1,10 +1,11 @@
 package me.micartey.nura.entities;
 
-import lombok.Data;
+import java.util.ArrayList;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
+import lombok.Data;
 
 @Document(
         collection = "vault"
@@ -15,7 +16,7 @@ public class VaultEntity {
     @Id
     private String id;
 
-    private String                    mail;
+    private final String                    mail;
     private ArrayList<PasswordEntity> passwords;
 
     public VaultEntity(String mail) {
