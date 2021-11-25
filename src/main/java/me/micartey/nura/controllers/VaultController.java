@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.AllArgsConstructor;
 import lombok.val;
 import me.micartey.nura.authentication.AuthConverter;
-import me.micartey.nura.authentication.TokenController;
+import me.micartey.nura.authentication.TokenHandler;
 import me.micartey.nura.bodies.VaultBody;
 import me.micartey.nura.entities.PasswordEntity;
 import me.micartey.nura.entities.VaultEntity;
 import me.micartey.nura.repositories.VaultRepository;
-import me.micartey.nura.responses.ErrorResponse;
+import me.micartey.nura.responses.MessageResponse;
 import me.micartey.nura.responses.Response;
 import me.micartey.nura.responses.VaultResponse;
 
@@ -31,7 +31,7 @@ import me.micartey.nura.responses.VaultResponse;
 @RequestMapping("/api/vault")
 public class VaultController {
 
-    private final TokenController tokenController;
+    private final TokenHandler tokenHandler;
 
     private final VaultRepository vaultRepository;
 
@@ -39,8 +39,8 @@ public class VaultController {
     @GetMapping
     public ResponseEntity<Response> getVault(@RequestHeader("Authorization") AuthConverter.Auth auth, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        if (!tokenController.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
+        if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
 
         val entity = this.getVaultEntity(auth.getKey());
 
@@ -51,8 +51,8 @@ public class VaultController {
     @PostMapping
     public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        if (!tokenController.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
+        if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
 
         val entity = this.getVaultEntity(auth.getKey());
 
@@ -72,8 +72,8 @@ public class VaultController {
     @DeleteMapping
     public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
-        if (!tokenController.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(invalidToken));
+        if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
 
         val entity = this.getVaultEntity(auth.getKey());
 
