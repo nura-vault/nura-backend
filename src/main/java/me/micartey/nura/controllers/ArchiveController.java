@@ -2,6 +2,9 @@ package me.micartey.nura.controllers;
 
 import java.util.UUID;
 
+import me.micartey.nura.authentication.AuditHandler;
+import me.micartey.nura.entities.AuditLog;
+import me.micartey.nura.repositories.VaultRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +35,10 @@ import me.micartey.nura.responses.VaultResponse;
 public class ArchiveController {
 
     private final TokenHandler tokenHandler;
+    private final AuditHandler auditHandler;
 
     private final ArchiveRepository archiveRepository;
+    private final VaultRepository   vaultRepository;
 
     @CrossOrigin
     @GetMapping
@@ -49,12 +54,21 @@ public class ArchiveController {
 
     @CrossOrigin
     @PostMapping
-    public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+    public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestHeader("User-Agent") String userAgent, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
         if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
 
         val entity = this.getArchiveEntity(auth.getKey());
+
+        //Remove password before archiving it
+        this.vaultRepository.findByMailOrId(auth.getKey(), null).ifPresent(vaultEntity -> {
+            val passwordEntity = vaultEntity.getPasswords().stream().filter(var -> {
+                return var.getIdentifier().equals(body.getIdentifier()) && var.getPassword().equals(body.getPassword());
+            }).findFirst().orElse(null);
+            vaultEntity.getPasswords().remove(passwordEntity);
+            vaultRepository.save(vaultEntity);
+        });
 
         entity.getPasswords().add(new PasswordEntity(
                 body.getIdentifier(),
@@ -63,6 +77,14 @@ public class ArchiveController {
                 body.getPassword()
         ));
 
+        this.auditHandler.createLog(
+                AuditLog.Action.ARCHIVE,
+                auth.getKey(),
+                UUID.fromString(auth.getValue()),
+                userAgent,
+                "Archive password: " + body.getIdentifier()
+        );
+
         archiveRepository.save(entity);
 
         return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
@@ -70,7 +92,7 @@ public class ArchiveController {
 
     @CrossOrigin
     @DeleteMapping
-    public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+    public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestHeader("User-Agent") String userAgent, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
         if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
@@ -83,6 +105,14 @@ public class ArchiveController {
 
         entity.getPasswords().remove(passwordEntity);
         archiveRepository.save(entity);
+
+        this.auditHandler.createLog(
+                AuditLog.Action.UNARCHIVE,
+                auth.getKey(),
+                UUID.fromString(auth.getValue()),
+                userAgent,
+                "Unarchive password: " + body.getIdentifier()
+        );
 
         return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
     }

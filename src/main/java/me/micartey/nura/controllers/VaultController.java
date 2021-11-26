@@ -2,6 +2,8 @@ package me.micartey.nura.controllers;
 
 import java.util.UUID;
 
+import me.micartey.nura.authentication.AuditHandler;
+import me.micartey.nura.entities.AuditLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,7 @@ import me.micartey.nura.responses.VaultResponse;
 public class VaultController {
 
     private final TokenHandler tokenHandler;
+    private final AuditHandler auditHandler;
 
     private final VaultRepository vaultRepository;
 
@@ -49,7 +52,7 @@ public class VaultController {
 
     @CrossOrigin
     @PostMapping
-    public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+    public ResponseEntity<Response> addPassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestHeader("User-Agent") String userAgent, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
         if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
@@ -63,6 +66,14 @@ public class VaultController {
                 body.getPassword()
         ));
 
+        this.auditHandler.createLog(
+                AuditLog.Action.CREATE,
+                auth.getKey(),
+                UUID.fromString(auth.getValue()),
+                userAgent,
+                "Create new password: " + body.getIdentifier()
+        );
+
         vaultRepository.save(entity);
 
         return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
@@ -70,7 +81,7 @@ public class VaultController {
 
     @CrossOrigin
     @DeleteMapping
-    public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
+    public ResponseEntity<Response> removePassword(@RequestHeader("Authorization") AuthConverter.Auth auth, @RequestHeader("User-Agent") String userAgent, @RequestBody VaultBody body, @Value("${nura.vault.invalidToken}") String invalidToken) {
 
         if (!tokenHandler.validTokenMatch(auth.getKey(), UUID.fromString(auth.getValue())))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
@@ -80,6 +91,14 @@ public class VaultController {
         val passwordEntity = entity.getPasswords().stream().filter(var -> {
             return var.getIdentifier().equals(body.getIdentifier()) && var.getPassword().equals(body.getPassword());
         }).findFirst().orElse(null);
+
+        this.auditHandler.createLog(
+                AuditLog.Action.DELETE,
+                auth.getKey(),
+                UUID.fromString(auth.getValue()),
+                userAgent,
+                "Delete password: " + body.getIdentifier()
+        );
 
         entity.getPasswords().remove(passwordEntity);
         vaultRepository.save(entity);
