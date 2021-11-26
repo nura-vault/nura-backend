@@ -38,7 +38,6 @@ public class ArchiveController {
     private final AuditHandler auditHandler;
 
     private final ArchiveRepository archiveRepository;
-    private final VaultRepository   vaultRepository;
 
     @CrossOrigin
     @GetMapping
@@ -60,15 +59,6 @@ public class ArchiveController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
 
         val entity = this.getArchiveEntity(auth.getKey());
-
-        //Remove password before archiving it
-        this.vaultRepository.findByMailOrId(auth.getKey(), null).ifPresent(vaultEntity -> {
-            val passwordEntity = vaultEntity.getPasswords().stream().filter(var -> {
-                return var.getIdentifier().equals(body.getIdentifier()) && var.getPassword().equals(body.getPassword());
-            }).findFirst().orElse(null);
-            vaultEntity.getPasswords().remove(passwordEntity);
-            vaultRepository.save(vaultEntity);
-        });
 
         entity.getPasswords().add(new PasswordEntity(
                 body.getIdentifier(),
@@ -107,11 +97,11 @@ public class ArchiveController {
         archiveRepository.save(entity);
 
         this.auditHandler.createLog(
-                AuditLog.Action.UNARCHIVE,
+                AuditLog.Action.DELETE,
                 auth.getKey(),
                 UUID.fromString(auth.getValue()),
                 userAgent,
-                "Unarchive password: " + body.getIdentifier()
+                "Delete password: " + body.getIdentifier()
         );
 
         return ResponseEntity.accepted().body(new VaultResponse(entity.getPasswords()));
