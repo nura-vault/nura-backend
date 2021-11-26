@@ -24,7 +24,8 @@ public class AuditHandler {
                 action,
                 token,
                 agent,
-                message
+                message,
+                System.currentTimeMillis()
         ));
 
         this.auditRepository.save(audit);

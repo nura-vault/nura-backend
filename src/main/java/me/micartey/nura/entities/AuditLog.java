@@ -16,7 +16,7 @@ public class AuditLog {
     private final String agent;
     private final String message;
 
-    private final long timestamp = System.currentTimeMillis();
+    private final long timestamp;
 
     public enum Action {
         LOGIN, CREATE, ARCHIVE, UNARCHIVE, DELETE, COPY
