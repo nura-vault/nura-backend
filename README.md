@@ -21,7 +21,7 @@ nura-backend is a RESTful API for managing [nura's](https://github.com/nura-vaul
 
 <div align="center">
     <img
-      src="https://i.imgur.com/76nyAjR.png"
+      src="https://i.imgur.com/3G9EhIB.png"
     />
 </div>
 
@@ -47,11 +47,10 @@ The REST endpoinst look as follows:
 
 <div align="center">
     <img
-      src="https://i.imgur.com/HnbRWVu.png"
+      src="https://i.imgur.com/LlJjsxm.png"
     />
 </div>
 
-**(outdated)**
 
 ## 🧱 Build it yourself
 
