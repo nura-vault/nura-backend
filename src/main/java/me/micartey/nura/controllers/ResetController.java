@@ -36,7 +36,7 @@ public class ResetController {
 
     @CrossOrigin
     @PutMapping("/password")
-    public ResponseEntity<Response> resetPassword(@RequestBody ResetBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host}") String host) {
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host.fontend}") String host, @Value("${nura.host.mail}") String blast) {
 
         if (!mailVerifier.isValidMail(body.getMail()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidMail));
@@ -63,12 +63,12 @@ public class ResetController {
             new MailRequests.Message(
                     body.getMail(),
                     "Reset Password",
-                    PASSWORD_RESET_HTML.replace("$LINK$", host + "/reset?token=" + resetHandler.generateResetToken(body.getMail()))
+                    PASSWORD_RESET_HTML.replace("$LINK$", host + "reset?token=" + resetHandler.generateResetToken(body.getMail()))
             )
         );
 
         val template = new RestTemplate();
-        template.postForLocation("http://localhost:9004/api/v1/mail/send", mailBody);
+        template.postForLocation(blast + "api/v1/mail/send", mailBody);
 
         return ResponseEntity.accepted().body(new MessageResponse("Reset mail send!"));
     }
