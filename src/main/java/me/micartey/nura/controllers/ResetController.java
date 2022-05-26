@@ -36,7 +36,7 @@ public class ResetController {
 
     @CrossOrigin
     @PutMapping("/password")
-    public ResponseEntity<Response> resetPassword(@RequestBody ResetBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host.fontend}") String host, @Value("${nura.host.mail}") String blast) {
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host.frontend}") String host, @Value("${nura.host.mail}") String blast) {
 
         if (!mailVerifier.isValidMail(body.getMail()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidMail));
