@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ResetBody {
-    private final String mail;
+    private String mail;
 }

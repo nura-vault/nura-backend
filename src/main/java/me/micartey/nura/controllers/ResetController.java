@@ -61,7 +61,7 @@ public class ResetController {
                     "Qq?2qi3+!NE?&+f&"
             ),
             new MailRequests.Message(
-                    "me@micartey.dev",
+                    body.getMail(),
                     "Reset Password",
                     PASSWORD_RESET_HTML.replace("$LINK$", host + "/reset?token=" + resetHandler.generateResetToken(body.getMail()))
             )
