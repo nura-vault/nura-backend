@@ -5,6 +5,7 @@ import lombok.val;
 import me.micartey.nura.authentication.AuditHandler;
 import me.micartey.nura.authentication.MailVerifier;
 import me.micartey.nura.authentication.ResetHandler;
+import me.micartey.nura.bodies.ResetBody;
 import me.micartey.nura.bodies.SignupBody;
 import me.micartey.nura.entities.AuditLog;
 import me.micartey.nura.repositories.UserRepository;
@@ -35,7 +36,7 @@ public class ResetController {
 
     @CrossOrigin
     @PutMapping("/password")
-    public ResponseEntity<Response> resetPassword(@RequestBody SignupBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host}") String host) {
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host}") String host) {
 
         if (!mailVerifier.isValidMail(body.getMail()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidMail));
