@@ -19,6 +19,6 @@ public class AuditLog {
     private final long timestamp;
 
     public enum Action {
-        LOGIN, CREATE, ARCHIVE, UNARCHIVE, DELETE, COPY
+        LOGIN, CREATE, ARCHIVE, UNARCHIVE, DELETE, COPY, RESET
     }
 }

@@ -64,5 +64,4 @@ public class SignupController {
         
         return ResponseEntity.accepted().body(new SigninResponse(entity.getUsername(), token));
     }
-
 }

@@ -14,7 +14,9 @@ import me.micartey.nura.repositories.AuditRepository;
 @Component
 @RequiredArgsConstructor
 public class AuditHandler {
-    
+
+    private final TokenHandler tokenHandler;
+
     private final AuditRepository auditRepository;
 
     public void createLog(AuditLog.Action action, String mail, UUID token, String agent, String message) {
