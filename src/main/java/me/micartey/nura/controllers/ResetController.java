@@ -49,7 +49,7 @@ public class ResetController {
                 "Password reset requested"
         );
 
-        if (userRepository.existsByMail(body.getMail()))
+        if (!userRepository.existsByMail(body.getMail()))
             return ResponseEntity.accepted().body(new MessageResponse("Reset mail send!"));
 
         val mailBody = new MailRequests(
