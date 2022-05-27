@@ -5,9 +5,10 @@ import lombok.val;
 import me.micartey.nura.authentication.AuditHandler;
 import me.micartey.nura.authentication.MailVerifier;
 import me.micartey.nura.authentication.ResetHandler;
-import me.micartey.nura.bodies.ResetBody;
-import me.micartey.nura.bodies.SignupBody;
+import me.micartey.nura.bodies.ResetReplyBody;
+import me.micartey.nura.bodies.ResetRequestBody;
 import me.micartey.nura.entities.AuditLog;
+import me.micartey.nura.entities.UserEntity;
 import me.micartey.nura.repositories.UserRepository;
 import me.micartey.nura.requests.MailRequests;
 import me.micartey.nura.responses.MessageResponse;
@@ -36,7 +37,7 @@ public class ResetController {
 
     @CrossOrigin
     @PutMapping("/password")
-    public ResponseEntity<Response> resetPassword(@RequestBody ResetBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host.frontend}") String host, @Value("${nura.host.mail}") String blast) {
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetRequestBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.invalidMail}") String invalidMail, @Value("${nura.host.frontend}") String host, @Value("${nura.host.mail}") String blast) {
 
         if (!mailVerifier.isValidMail(body.getMail()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidMail));
@@ -63,13 +64,53 @@ public class ResetController {
             new MailRequests.Message(
                     body.getMail(),
                     "Reset Password",
-                    PASSWORD_RESET_HTML.replace("$LINK$", host + "reset?token=" + resetHandler.generateResetToken(body.getMail()))
+                    PASSWORD_RESET_HTML
+                            .replace("$USER$", userRepository.findByMail(body.getMail()).getUsername())
+                            .replace("$LINK$", host + "reset?token=" + resetHandler.generateResetToken(body.getMail()))
             )
         );
 
-        val template = new RestTemplate();
-        template.postForLocation(blast + "api/v1/mail/send", mailBody);
+        new Thread(() -> {
+            val template = new RestTemplate();
+            template.postForLocation(blast + "api/v1/mail/send", mailBody);
+        }).start();
 
         return ResponseEntity.accepted().body(new MessageResponse("Reset mail send!"));
+    }
+
+    @CrossOrigin
+    @PostMapping("/password")
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetReplyBody body, @RequestHeader("User-Agent") String userAgent, @Value("${nura.vault.invalidToken}") String invalidToken, @Value("${nura.invalidMail}") String invalidMail) {
+
+        if (!mailVerifier.isValidMail(body.getMail()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidMail));
+
+        if (!resetHandler.validResetToken(body.getMail(), UUID.fromString(body.getToken())))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(invalidToken));
+
+        resetHandler.revokeResetTokens(body.getMail());
+
+        val userEntity = userRepository.findByMail(
+                body.getMail()
+        );
+
+        val newUserEntity = new UserEntity(
+                userEntity.getUsername(),
+                userEntity.getMail(),
+                body.getPassword()
+        );
+
+        userRepository.delete(userEntity);
+        userRepository.save(newUserEntity);
+
+        this.auditHandler.createLog(
+                AuditLog.Action.RESET,
+                body.getMail(),
+                UUID.fromString(body.getToken()),
+                userAgent,
+                "Password has been reset"
+        );
+
+        return ResponseEntity.accepted().body(new MessageResponse("Password has been successfully reset"));
     }
 }
