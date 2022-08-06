@@ -54,12 +54,12 @@ public class ResetController {
             return ResponseEntity.accepted().body(new MessageResponse("Reset mail send!"));
 
         val mailBody = new MailRequests(
-            "mail.micartey.dev",
-            25,
-            false,
+            System.getenv("BLAST_HOST"),
+            Integer.parseInt(System.getenv("BLAST_PORT")),
+            Boolean.parseBoolean(System.getenv("BLAST_TLS")),
             new MailRequests.Auth(
-                    "noreply@micartey.dev",
-                    "Qq?2qi3+!NE?&+f&"
+                    System.getenv("BLAST_MAIL"),
+                    System.getenv("BLAST_PASSWORD")
             ),
             new MailRequests.Message(
                     body.getMail(),

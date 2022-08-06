@@ -4,6 +4,12 @@ services:
   server:
     build: .
     container_name: backend
+    environment:
+        - BLAST_HOST=mail.micartey.dev
+        - BLAST_PORT=25
+        - BLAST_TLS=false
+        - BLAST_MAIL=noreply@micartey.dev
+        - BLAST_PASSWORD=************
     ports:
       - "8080:8080"
     depends_on:
